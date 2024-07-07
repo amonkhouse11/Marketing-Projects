@@ -1,0 +1,39 @@
+import pandas as pd
+from pytrends.request import TrendReq
+import matplotlib.pyplot as plt
+Trending_topics = TrendReq(hl= 'en-US', tz=360)
+
+kw_list = ["AI"]
+Trending_topics.build_payload(kw_list,cat=0,timeframe='today 12-m')
+
+--Interest over time----
+data = Trending_topics.interest_over_time()
+data = data.sort_values(by="AI", ascending = False)
+data = data.head(10)
+print(data)
+
+--Interest by Region--
+data = Trending_topics.interest_by_region()
+data = data.sort_values(by= "AI", ascending = False)
+data = data.head(10)
+print(data)
+
+--Bar graph by region--
+data.reset_index().plot(x= 'geoName', y= 'AI', figsize =(10,5), kind = "bar")
+plt.style.use('fivethirtyeight')
+plt.show()
+
+--Google search words by year--
+df = Trending_topics.top_charts(2023, hl = 'en-US', tz=300, geo= 'GLOBAL')
+df.head(10)
+
+--Related queries---
+Trending_topics.build_payload(kw_list = ['AI'])
+related_queries = Trending_topics.related_queries()
+related_queries.values()
+
+--Google suggestions
+keywords = Trending_topics.suggestions(keyword = 'AI')
+df = pd.DataFrame(keywords)
+df.drop(columns = 'mid')
+
