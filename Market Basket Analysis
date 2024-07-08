@@ -1,0 +1,79 @@
+--Market
+SELECT * FROM dbo.retail_data
+
+SELECT r.Transaction_ID,
+	   COUNT(r.products) total_product
+FROM dbo.retail_data r
+GROUP BY r.Transaction_ID
+HAVING COUNT(r.products) >= 2 AND r.Transaction_id IS NOT NULL
+ORDER by total_product DESC
+;
+
+SELECT orderlist.Transaction_ID,
+	   r2.products   
+FROM (SELECT r.Transaction_ID,
+	         r.products
+      FROM dbo.retail_data r
+      GROUP BY r.Transaction_ID, r.products
+      HAVING COUNT(r.products) >= 2) orderlist
+JOIN dbo.retail_data r2 ON (r2.Transaction_ID = orderlist.Transaction_ID)
+ORDER BY orderlist.Transaction_ID
+;
+
+WITH CTE AS
+(
+SELECT r.Transaction_ID,
+	   COUNT(r.products) total_product
+FROM dbo.retail_data r
+GROUP BY r.Transaction_ID
+HAVING COUNT(r.products) >= 2
+)
+
+SELECT c.transaction_id,
+	   r2.products
+FROM CTE c
+JOIN dbo.retail_data r2 ON (c.Transaction_ID = r2.Transaction_id)
+ORDER BY c.transaction_id
+-------------
+
+SELECT r.Transaction_ID,
+	   COUNT(r.products) total_product
+INTO tmp_basket_analysis
+FROM dbo.retail_data r
+GROUP BY r.Transaction_ID
+HAVING COUNT(r.products) >= 2
+
+
+SELECT c.transaction_id,
+	   r2.products
+FROM tmp_basket_analysis c
+JOIN dbo.retail_data r2 ON (c.Transaction_ID = r2.Transaction_id)
+ORDER BY c.transaction_id
+
+WITH CTE AS
+(SELECT c.transaction_id,
+	   r2.products
+FROM tmp_basket_analysis c
+JOIN dbo.retail_data r2 ON (c.Transaction_ID = r2.Transaction_id)
+)
+
+SELECT c1.products Product1,
+	   c2.products Product2,
+	   COUNT(*) Frequency
+FROM cte c1
+JOIN CTE c2 ON (c1.Transaction_ID = c2.Transaction_ID)
+WHERE c1.products != c2.products AND c1.products < c2.products 
+GROUP BY c1.products,
+	   c2.products
+ORDER BY Frequency DESC
+;
+
+
+SELECT 
+	Info1.SalesOrderNumber,
+	Info1.ProductKey AS Product1,
+	Info2.ProductKey AS Product2
+FROM Info AS Info1
+JOIN Info AS Info2 ON Info1.SalesOrderNumber = Info2.SalesOrderNumber
+WHERE Info1.ProductKey != Info2.ProductKey 
+  AND Info1.ProductKey < Info2.ProductKey;
